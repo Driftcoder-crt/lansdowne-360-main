@@ -62,7 +62,7 @@ export async function DELETE(request: NextRequest) {
   reservations = reservations.filter(res => res.id !== reservationId)
   return NextResponse.json({ success: true })
 }
-import { NextResponse } from 'next/server'
+
 import { query, run } from '@/lib/database'
 
 export async function GET() {

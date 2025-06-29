@@ -63,7 +63,7 @@ export async function DELETE(request: NextRequest) {
   return NextResponse.json({ success: true })
 }
 
-import { query, run } from '@/lib/database'
+ import { query, run } from '@/lib/database'
 
 export async function GET() {
   try {

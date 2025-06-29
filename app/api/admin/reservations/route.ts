@@ -1,69 +1,5 @@
-
-import { NextRequest, NextResponse } from 'next/server'
-
-// Simulated database
-let reservations = [
-  {
-    id: "RES001",
-    guestName: "Rajesh Kumar",
-    email: "rajesh.kumar@email.com",
-    phone: "+91 98765 43210",
-    roomType: "Super Deluxe Valley View",
-    checkIn: "2024-06-25",
-    checkOut: "2024-06-28",
-    guests: 2,
-    amount: "₹13,500",
-    status: "confirmed",
-    bookingDate: "2024-06-20",
-  },
-  {
-    id: "RES002",
-    guestName: "Priya Sharma",
-    email: "priya.sharma@email.com",
-    phone: "+91 87654 32109",
-    roomType: "Deluxe Room",
-    checkIn: "2024-06-26",
-    checkOut: "2024-06-29",
-    guests: 3,
-    amount: "₹10,500",
-    status: "pending",
-    bookingDate: "2024-06-21",
-  },
-]
-
-export async function GET() {
-  return NextResponse.json(reservations)
-}
-
-export async function POST(request: NextRequest) {
-  const body = await request.json()
-  const newReservation = {
-    id: `RES${String(reservations.length + 1).padStart(3, '0')}`,
-    ...body,
-    bookingDate: new Date().toISOString().split('T')[0],
-  }
-  reservations.push(newReservation)
-  return NextResponse.json(newReservation)
-}
-
-export async function PUT(request: NextRequest) {
-  const body = await request.json()
-  const reservationIndex = reservations.findIndex(res => res.id === body.id)
-  if (reservationIndex !== -1) {
-    reservations[reservationIndex] = { ...reservations[reservationIndex], ...body }
-    return NextResponse.json(reservations[reservationIndex])
-  }
-  return NextResponse.json({ error: 'Reservation not found' }, { status: 404 })
-}
-
-export async function DELETE(request: NextRequest) {
-  const { searchParams } = new URL(request.url)
-  const reservationId = searchParams.get('id')
-  reservations = reservations.filter(res => res.id !== reservationId)
-  return NextResponse.json({ success: true })
-}
-
- import { query, run } from '@/lib/database'
+import { NextResponse } from 'next/server'
+import { query, run } from '@/lib/database'
 
 export async function GET() {
   try {
@@ -103,12 +39,10 @@ export async function POST(request: Request) {
       subtotal, service_fee, taxes, total, payment_method, special_requests 
     } = data
     
-    // Calculate nights
     const checkInDate = new Date(check_in)
     const checkOutDate = new Date(check_out)
     const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24))
     
-    // Generate confirmation number
     const confirmation_number = 'AI' + Date.now().toString().slice(-8)
     
     const result = await run(`
@@ -146,7 +80,6 @@ export async function PUT(request: Request) {
       special_requests 
     } = data
     
-    // Calculate nights if dates changed
     let updateFields = []
     let updateValues = []
     

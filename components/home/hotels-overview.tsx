@@ -1,12 +1,84 @@
 import Image from "next/image"
 import Link from "next/link"
+import { useState, useEffect } from "react"
 import { MapPin, Calendar, ExternalLink } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ButtonPrimary, ButtonSecondary } from "@/components/ui/buttons"
-import { HOTELS, BOOKING_URL } from "@/lib/constants"
+import { BOOKING_URL } from "@/lib/constants"
 
-export const HotelsOverview = () => (
+interface Hotel {
+  id: number
+  name: string
+  slug: string
+  location: string
+  description: string
+  status: 'active' | 'coming-soon'
+  heroImage: string
+  rooms: number
+  established: number
+}
+
+export const HotelsOverview = () => {
+  const [hotels, setHotels] = useState<Hotel[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchHotels = async () => {
+      try {
+        const response = await fetch('/api/hotels')
+        if (response.ok) {
+          const data = await response.json()
+          setHotels(data)
+        } else {
+          // Fallback to constants if API fails
+          const { HOTELS } = await import('@/lib/constants')
+          setHotels(HOTELS)
+        }
+      } catch (error) {
+        console.error('Error fetching hotels:', error)
+        // Fallback to constants if API fails
+        const { HOTELS } = await import('@/lib/constants')
+        setHotels(HOTELS)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchHotels()
+  }, [])
+
+  if (loading) {
+    return (
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <div className="animate-pulse">
+              <div className="h-8 bg-neutral-200 rounded w-48 mx-auto mb-4"></div>
+              <div className="h-12 bg-neutral-200 rounded w-96 mx-auto mb-8"></div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-white rounded-xl shadow-lg overflow-hidden">
+                  <div className="h-64 bg-neutral-200 animate-pulse"></div>
+                  <div className="p-6">
+                    <div className="h-6 bg-neutral-200 rounded mb-3 animate-pulse"></div>
+                    <div className="h-4 bg-neutral-200 rounded mb-6 animate-pulse"></div>
+                    <div className="flex gap-3">
+                      <div className="h-10 bg-neutral-200 rounded flex-1 animate-pulse"></div>
+                      <div className="h-10 bg-neutral-200 rounded w-20 animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  return (
   <section className="py-20 bg-white">
     <div className="container mx-auto px-4">
       <div className="text-center mb-16">
@@ -19,7 +91,7 @@ export const HotelsOverview = () => (
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {HOTELS.map((hotel) => (
+        {hotels.map((hotel) => (
           <Card key={hotel.id} className="overflow-hidden hover:shadow-2xl transition-all duration-300 group">
             <div className="relative h-64 overflow-hidden">
               <Image
@@ -82,4 +154,5 @@ export const HotelsOverview = () => (
       </div>
     </div>
   </section>
-)
+  )
+}

@@ -28,3 +28,7 @@ Continue building your app on:
 2. Deploy your chats from the v0 interface
 3. Changes are automatically pushed to this repository
 4. Vercel deploys the latest version from this repository
+
+## Getting Started
+
+For end-to-end details on connecting the platform to eZee Absolute, read the **[eZee Integration Guide](docs/EZEE_INTEGRATION_GUIDE.md)**.

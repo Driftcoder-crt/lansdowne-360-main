@@ -1,5 +1,9 @@
-import EZeeClient, { EZeeClientConfig } from './ezee-client'
+import EZeeClient, {
+  EZeeClientConfig,
+  BookingResponse
+} from './ezee-client'
 import { query, run } from './database'
+import { z } from 'zod'
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 declare const process: { env: Record<string, string | undefined> }
@@ -33,27 +37,51 @@ export async function checkAvailability(
   return client.availability(startDate, endDate, roomTypeId)
 }
 
-export async function createBooking(payload: any) {
+// Shape expected from the UI when creating a booking
+export const BookingPayloadSchema = z.object({
+  checkIn: z.string(), // YYYY-MM-DD
+  checkOut: z.string(),
+  guestsCount: z.number().int().positive(),
+  nights: z.number().int().positive(),
+  subtotal: z.number().nonnegative(),
+  total: z.number().nonnegative(),
+  roomTypeId: z.string().optional(),
+  notes: z.string().optional()
+})
+export type BookingPayload = z.infer<typeof BookingPayloadSchema>
+
+export async function createBooking(payload: BookingPayload): Promise<BookingResponse> {
   const cfg = await getConfig()
   const client = new EZeeClient(cfg)
-  const response = await client.createBooking(payload)
+  // Validate inbound payload to avoid corrupt data
+  const data = BookingPayloadSchema.parse(payload)
 
-  // We assume the payload contains room/guest details; map to local DB if needed.
+  const response = await client.createBooking(data)
+
+  // Persist basic booking data locally for dashboards / offline reference
   await run(
-    `INSERT INTO bookings (confirmation_number, guest_id, hotel_id, room_id, check_in, check_out, guests_count, nights, subtotal, total, status, payment_status)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO bookings (
+        confirmation_number,
+        check_in,
+        check_out,
+        guests_count,
+        nights,
+        subtotal,
+        total,
+        status,
+        payment_status,
+        created_at,
+        updated_at
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
     [
-      response?.confirmationNumber || '',
-      null,
-      null,
-      null,
-      payload.checkIn,
-      payload.checkOut,
-      payload.guestsCount,
-      payload.nights,
-      payload.subtotal,
-      payload.total,
-      'confirmed',
+      response.confirmationNumber,
+      data.checkIn,
+      data.checkOut,
+      data.guestsCount,
+      data.nights,
+      data.subtotal,
+      data.total,
+      response.status,
       'pending'
     ]
   )

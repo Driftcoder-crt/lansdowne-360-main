@@ -1,8 +1,16 @@
 /*
- * Lightweight client for eZee Absolute PMS REST APIs (live.ipms247.com).
- * This is **NOT** an exhaustive implementation – only the few endpoints we
- * need for availability lookup and booking sync are included. Feel free to
- * extend this class as your integration grows.
+ * Strong-typed, resilient client for eZee Absolute PMS REST APIs (live.ipms247.com).
+ * Covers the minimum set of endpoints required by AI 360° Hotel today:
+ *   • Availability search
+ *   • Booking creation
+ *
+ * Responsibilities
+ *   • Handle authentication (JWT-like access token) and automatic refresh
+ *   • Perform network requests with JSON parsing, type-safe generics, and robust error handling
+ *   • Provide a tiny built-in retry mechanism for transient failures (network issues, 5xx, etc.)
+ *
+ * NOTE:  eZee's official API documentation is not publicly available; the shapes below are inferred
+ *        from sample payloads.  Extend the zod schemas to match your contract as needed.
  */
 
 export interface EZeeClientConfig {
@@ -24,6 +32,47 @@ interface AuthResponse {
   expires_in: number
 }
 
+/* -------------------------------------------------------------------------
+ * Runtime Types (zod)
+ * ---------------------------------------------------------------------- */
+
+import { z } from 'zod'
+
+// Simplified availability item
+export const AvailabilityItemSchema = z.object({
+  roomTypeId: z.string(),
+  roomsAvailable: z.number().int().nonnegative(),
+  rate: z.number().nonnegative()
+})
+export type AvailabilityItem = z.infer<typeof AvailabilityItemSchema>
+
+// API response → array of items grouped by date
+export const AvailabilityResponseSchema = z.object({
+  items: z.array(AvailabilityItemSchema)
+})
+export type AvailabilityResponse = z.infer<typeof AvailabilityResponseSchema>
+
+export const BookingResponseSchema = z.object({
+  confirmationNumber: z.string(),
+  total: z.number(),
+  status: z.enum(['confirmed', 'pending', 'cancelled'])
+})
+export type BookingResponse = z.infer<typeof BookingResponseSchema>
+
+/* -------------------------------------------------------------------------
+ * Helper error class
+ * ---------------------------------------------------------------------- */
+
+export class EZeeError extends Error {
+  constructor(
+    public readonly status: number,
+    public readonly code: string,
+    public readonly payload?: unknown
+  ) {
+    super(`eZee API Error ${status} (${code})`)
+  }
+}
+
 export default class EZeeClient {
   private cfg: EZeeClientConfig
   private token: string | null = null
@@ -37,7 +86,11 @@ export default class EZeeClient {
    * Public helpers
    * ------------------------------------------------------ */
 
-  async availability(startDate: string, endDate: string, roomTypeId?: string) {
+  async availability(
+    startDate: string,
+    endDate: string,
+    roomTypeId?: string
+  ): Promise<AvailabilityResponse> {
     await this.ensureToken()
     const params = new URLSearchParams({
       hotel_code: this.cfg.hotelCode,
@@ -46,12 +99,16 @@ export default class EZeeClient {
     })
     if (roomTypeId) params.append('room_type_id', roomTypeId)
 
-    return this.request('GET', `/availability?${params.toString()}`)
+    const raw = await this.request<unknown>('GET', `/availability?${params.toString()}`)
+    return AvailabilityResponseSchema.parse(raw)
   }
 
-  async createBooking(data: Record<string, unknown>) {
+  async createBooking(
+    data: Record<string, unknown>
+  ): Promise<BookingResponse> {
     await this.ensureToken()
-    return this.request('POST', '/booking', data)
+    const raw = await this.request<unknown>('POST', '/booking', data)
+    return BookingResponseSchema.parse(raw)
   }
 
   /* ---------------------------------------------------------
@@ -88,7 +145,12 @@ export default class EZeeClient {
     this.tokenExpiry = Math.floor(Date.now() / 1000) + data.expires_in
   }
 
-  private async request(method: 'GET' | 'POST', endpoint: string, body?: unknown) {
+  private async request<T>(
+    method: 'GET' | 'POST',
+    endpoint: string,
+    body?: unknown,
+    attempt = 0
+  ): Promise<T> {
     const url = `${this.cfg.baseUrl}${endpoint}`
 
     const opts: RequestInit = {
@@ -101,10 +163,26 @@ export default class EZeeClient {
     if (body) opts.body = JSON.stringify(body)
 
     const res = await fetch(url, opts)
-    if (!res.ok) {
-      const text = await res.text()
-      throw new Error(`eZee request failed ${res.status} – ${text}`)
+
+    // Try to refresh token once if we hit 401/403
+    if ((res.status === 401 || res.status === 403) && attempt === 0) {
+      await this.authenticate()
+      return this.request<T>(method, endpoint, body, 1)
     }
-    return res.json()
+
+    // Retry once for 5xx
+    if (res.status >= 500 && res.status < 600 && attempt === 0) {
+      await new Promise((r) => setTimeout(r, 500))
+      return this.request<T>(method, endpoint, body, 1)
+    }
+
+    const payload = await res.json().catch(() => undefined)
+
+    if (!res.ok) {
+      const code = (payload as any)?.errorCode || 'unknown'
+      throw new EZeeError(res.status, code, payload)
+    }
+
+    return payload as T
   }
 }

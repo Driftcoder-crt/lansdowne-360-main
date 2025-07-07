@@ -1,4 +1,3 @@
-
 import sqlite3 from 'sqlite3'
 import { open } from 'sqlite'
 import bcrypt from 'bcrypt'
@@ -173,6 +172,20 @@ export async function initializeDatabase() {
         assignee_id INTEGER REFERENCES staff(id),
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    // Create system_settings table for storing integration and other global config
+    await database.exec(`
+      CREATE TABLE IF NOT EXISTS system_settings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        category VARCHAR(100) NOT NULL,
+        key VARCHAR(100) NOT NULL,
+        value TEXT,
+        encrypted BOOLEAN DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(category, key)
       )
     `)
 

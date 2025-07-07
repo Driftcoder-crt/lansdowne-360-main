@@ -11,6 +11,7 @@ const menuItems = [
   { id: "housekeeping", label: "Housekeeping", icon: Sparkles, href: "/admin/housekeeping" },
   { id: "maintenance", label: "Maintenance", icon: Wrench, href: "/admin/maintenance" },
   { id: "reports", label: "Reports", icon: FileText, href: "/admin/reports" },
+  { id: "integrations", label: "Integrations", icon: Settings, href: "/admin/integrations/ezee" },
   { id: "settings", label: "Settings", icon: Settings, href: "/admin/settings" },
 ]
 

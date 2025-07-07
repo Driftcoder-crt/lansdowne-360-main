@@ -1,16 +1,26 @@
-/*
+/**
+ * @fileoverview
  * Strong-typed, resilient client for eZee Absolute PMS REST APIs (live.ipms247.com).
- * Covers the minimum set of endpoints required by AI 360° Hotel today:
- *   • Availability search
- *   • Booking creation
  *
  * Responsibilities
- *   • Handle authentication (JWT-like access token) and automatic refresh
- *   • Perform network requests with JSON parsing, type-safe generics, and robust error handling
- *   • Provide a tiny built-in retry mechanism for transient failures (network issues, 5xx, etc.)
+ * ────────────────────────────────────────────────────────────
+ * • Handle authentication (JWT-like access token) and automatic refresh
+ * • Perform network requests with JSON parsing, type-safe generics, and robust error handling
+ * • Provide a minimal retry mechanism for transient failures (network hiccups, 5xx, etc.)
  *
- * NOTE:  eZee's official API documentation is not publicly available; the shapes below are inferred
- *        from sample payloads.  Extend the zod schemas to match your contract as needed.
+ * Implemented Endpoints
+ * ────────────────────────────────────────────────────────────
+ * • GET  /availability                 → availability()
+ * • POST /booking                      → createBooking()
+ * • GET  /booking/:confirmationNumber  → getBooking()
+ * • POST /booking/cancel               → cancelBooking()
+ *
+ * Add more helpers as your integration grows. Keep all runtime types at the
+ *  bottom of the file for a single source of truth.
+ *
+ * NOTE ▸ eZee's official API documentation is not publicly available; the
+ *        schemas below are inferred from real-world payloads.  Update them to
+ *        match your own contract when in doubt.
  */
 
 export interface EZeeClientConfig {
@@ -58,6 +68,11 @@ export const BookingResponseSchema = z.object({
   status: z.enum(['confirmed', 'pending', 'cancelled'])
 })
 export type BookingResponse = z.infer<typeof BookingResponseSchema>
+
+export const SingleBookingResponseSchema = z.object({
+  booking: BookingResponseSchema
+})
+export type SingleBookingResponse = z.infer<typeof SingleBookingResponseSchema>
 
 /* -------------------------------------------------------------------------
  * Helper error class
@@ -108,6 +123,30 @@ export default class EZeeClient {
   ): Promise<BookingResponse> {
     await this.ensureToken()
     const raw = await this.request<unknown>('POST', '/booking', data)
+    return BookingResponseSchema.parse(raw)
+  }
+
+  /**
+   * Fetch a single booking by its confirmation number.
+   * @param confirmationNumber Unique code returned by createBooking().
+   */
+  async getBooking(confirmationNumber: string): Promise<SingleBookingResponse> {
+    await this.ensureToken()
+    const raw = await this.request<unknown>('GET', `/booking/${encodeURIComponent(confirmationNumber)}`)
+    return SingleBookingResponseSchema.parse(raw)
+  }
+
+  /**
+   * Cancel an existing booking in eZee.
+   * Returns the updated booking object in the same shape as createBooking().
+   */
+  async cancelBooking(confirmationNumber: string): Promise<BookingResponse> {
+    await this.ensureToken()
+    const raw = await this.request<unknown>(
+      'POST',
+      '/booking/cancel',
+      { confirmationNumber }
+    )
     return BookingResponseSchema.parse(raw)
   }
 

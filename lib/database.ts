@@ -189,6 +189,161 @@ export async function initializeDatabase() {
       )
     `)
 
+    // Create amenities table
+    await database.exec(`
+      CREATE TABLE IF NOT EXISTS amenities (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        icon VARCHAR(100),
+        category VARCHAR(100),
+        status VARCHAR(50) DEFAULT 'active',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    // Create testimonials table
+    await database.exec(`
+      CREATE TABLE IF NOT EXISTS testimonials (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name VARCHAR(255) NOT NULL,
+        location VARCHAR(255),
+        rating INTEGER CHECK(rating BETWEEN 1 AND 5),
+        comment TEXT,
+        date VARCHAR(100),
+        status VARCHAR(50) DEFAULT 'active',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    // Create packages table
+    await database.exec(`
+      CREATE TABLE IF NOT EXISTS packages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) UNIQUE NOT NULL,
+        duration VARCHAR(100),
+        price DECIMAL(10,2) NOT NULL,
+        original_price DECIMAL(10,2),
+        description TEXT,
+        includes TEXT,   /* JSON array */
+        highlights TEXT, /* JSON array */
+        image VARCHAR(500),
+        category VARCHAR(100),
+        max_guests INTEGER,
+        popular BOOLEAN DEFAULT 0,
+        status VARCHAR(50) DEFAULT 'active',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    // Create activities table
+    await database.exec(`
+      CREATE TABLE IF NOT EXISTS activities (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) UNIQUE NOT NULL,
+        description TEXT,
+        image VARCHAR(500),
+        category VARCHAR(100),
+        features TEXT, /* JSON array */
+        status VARCHAR(50) DEFAULT 'active',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    // Create gallery_images table
+    await database.exec(`
+      CREATE TABLE IF NOT EXISTS gallery_images (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title VARCHAR(255),
+        src VARCHAR(500) NOT NULL,
+        category VARCHAR(100),
+        status VARCHAR(50) DEFAULT 'active',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    // Create dining_restaurants table
+    await database.exec(`
+      CREATE TABLE IF NOT EXISTS dining_restaurants (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name VARCHAR(255) NOT NULL,
+        cuisine VARCHAR(255),
+        timing VARCHAR(100),
+        specialty VARCHAR(255),
+        description TEXT,
+        image VARCHAR(500),
+        status VARCHAR(50) DEFAULT 'active',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    // Create experiences table
+    await database.exec(`
+      CREATE TABLE IF NOT EXISTS experiences (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) UNIQUE NOT NULL,
+        description TEXT,
+        image VARCHAR(500),
+        icon VARCHAR(100),
+        features TEXT, /* JSON array */
+        status VARCHAR(50) DEFAULT 'active',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    // Create event_venues table
+    await database.exec(`
+      CREATE TABLE IF NOT EXISTS event_venues (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name VARCHAR(255) NOT NULL,
+        capacity INTEGER,
+        description TEXT,
+        features TEXT, /* JSON array */
+        image VARCHAR(500),
+        status VARCHAR(50) DEFAULT 'active',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    // Create spa_services table
+    await database.exec(`
+      CREATE TABLE IF NOT EXISTS spa_services (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        duration VARCHAR(50),
+        price DECIMAL(10,2),
+        image VARCHAR(500),
+        status VARCHAR(50) DEFAULT 'active',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    // Create contact_messages table
+    await database.exec(`
+      CREATE TABLE IF NOT EXISTS contact_messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        first_name VARCHAR(100),
+        last_name VARCHAR(100),
+        email VARCHAR(255),
+        phone VARCHAR(20),
+        message TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
     // Insert sample data
     await seedDatabase(database)
     

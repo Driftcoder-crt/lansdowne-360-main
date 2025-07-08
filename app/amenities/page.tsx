@@ -5,95 +5,18 @@ export const metadata: Metadata = {
   description: "Discover our world-class amenities and facilities designed for your comfort and convenience.",
 }
 
-export default function AmenitiesPage() {
-  const amenities = [
-    {
-      id: 1,
-      name: "Multi-Cuisine Restaurant",
-      description: "Fine dining with local and international cuisines prepared by expert chefs",
-      category: "Dining",
-      icon: "🍽️"
-    },
-    {
-      id: 2,
-      name: "Spa & Wellness Center",
-      description: "Rejuvenating treatments and wellness therapies in a serene environment",
-      category: "Wellness",
-      icon: "🧘"
-    },
-    {
-      id: 3,
-      name: "Adventure Activities",
-      description: "Trekking, rock climbing, and outdoor adventures with professional guides",
-      category: "Activities",
-      icon: "🏔️"
-    },
-    {
-      id: 4,
-      name: "Nature Walks",
-      description: "Guided walks through pristine mountain trails and forest paths",
-      category: "Activities",
-      icon: "🌲"
-    },
-    {
-      id: 5,
-      name: "Photography Tours",
-      description: "Capture stunning landscapes with expert photography guides",
-      category: "Activities",
-      icon: "📸"
-    },
-    {
-      id: 6,
-      name: "Conference Hall",
-      description: "Modern facilities for business meetings, events, and conferences",
-      category: "Business",
-      icon: "🏢"
-    },
-    {
-      id: 7,
-      name: "Free WiFi",
-      description: "High-speed internet connectivity throughout the property",
-      category: "Connectivity",
-      icon: "📶"
-    },
-    {
-      id: 8,
-      name: "24/7 Concierge",
-      description: "Round-the-clock assistance and local expertise for all your needs",
-      category: "Service",
-      icon: "🤝"
-    },
-    {
-      id: 9,
-      name: "Fitness Center",
-      description: "State-of-the-art gym equipment and personal training services",
-      category: "Wellness",
-      icon: "💪"
-    },
-    {
-      id: 10,
-      name: "Swimming Pool",
-      description: "Outdoor swimming pool with mountain views and poolside service",
-      category: "Recreation",
-      icon: "🏊"
-    },
-    {
-      id: 11,
-      name: "Library & Reading Room",
-      description: "Quiet space with books, magazines, and comfortable seating",
-      category: "Recreation",
-      icon: "📚"
-    },
-    {
-      id: 12,
-      name: "Kids Play Area",
-      description: "Safe and fun play area designed specifically for children",
-      category: "Family",
-      icon: "🎪"
-    }
-  ]
+export default async function AmenitiesPage() {
+  // Fetch amenities from the new public endpoint
+  const res = await fetch(`${process.env.NEXT_PUBLIC_VERCEL_URL ? 'https://' + process.env.NEXT_PUBLIC_VERCEL_URL : ''}/api/frontend/amenities`, { cache: 'no-store' })
+  const amenities: {
+    id: number
+    name: string
+    description: string
+    category: string
+    icon?: string
+  }[] = await res.json()
 
-  const categories = [...new Set(amenities.map(amenity => amenity.category))]
+  const categories = Array.from(new Set(amenities.map(a => a.category)))
 
   return (
     <div className="min-h-screen bg-neutral-50">

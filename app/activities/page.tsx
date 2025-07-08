@@ -1,74 +1,18 @@
-export default function ActivitiesPage() {
-  const activities = [
-    {
-      id: 1,
-      name: "Mountain Trekking",
-      description: "Guided trekking expeditions through scenic mountain trails with professional guides",
-      duration: "4-8 hours",
-      difficulty: "Moderate",
-      price: "₹2,500",
-      image: "/images/hero-ai-hotel.jpg",
-      category: "Adventure",
-      includes: ["Professional guide", "Safety equipment", "Packed lunch", "Photography"]
-    },
-    {
-      id: 2,
-      name: "Rock Climbing",
-      description: "Exciting rock climbing adventures suitable for beginners and experienced climbers",
-      duration: "3-5 hours", 
-      difficulty: "Beginner to Advanced",
-      price: "₹3,000",
-      image: "/images/deluxe-room.jpg",
-      category: "Adventure",
-      includes: ["Climbing gear", "Safety harness", "Professional instructor", "Certificate"]
-    },
-    {
-      id: 3,
-      name: "Nature Photography Walk",
-      description: "Capture stunning landscapes and wildlife with expert photography guidance",
-      duration: "2-3 hours",
-      difficulty: "Easy",
-      price: "₹1,500",
-      image: "/images/spa.jpg",
-      category: "Photography",
-      includes: ["Photography tips", "Best spot locations", "Equipment guidance", "Photo editing basics"]
-    },
-    {
-      id: 4,
-      name: "River Rafting",
-      description: "Thrilling white water rafting experience on pristine mountain rivers",
-      duration: "5-6 hours",
-      difficulty: "Moderate",
-      price: "₹4,500", 
-      image: "/images/pool.jpg",
-      category: "Water Sports",
-      includes: ["Rafting equipment", "Life jackets", "Professional guide", "Riverside lunch"]
-    },
-    {
-      id: 5,
-      name: "Village Cultural Tour",
-      description: "Experience local culture, traditions, and authentic village life",
-      duration: "6-7 hours",
-      difficulty: "Easy",
-      price: "₹2,000",
-      image: "/images/restaurant.jpg", 
-      category: "Cultural",
-      includes: ["Local guide", "Traditional lunch", "Cultural performance", "Handicraft demonstration"]
-    },
-    {
-      id: 6,
-      name: "Sunrise Point Expedition",
-      description: "Early morning trek to witness breathtaking sunrise views from mountain peaks",
-      duration: "3-4 hours",
-      difficulty: "Easy to Moderate", 
-      price: "₹1,800",
-      image: "/images/luxury-suite.jpg",
-      category: "Nature",
-      includes: ["Early morning transport", "Hot refreshments", "Blankets", "Breakfast"]
-    }
-  ]
+export default async function ActivitiesPage() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_VERCEL_URL ? 'https://' + process.env.NEXT_PUBLIC_VERCEL_URL : ''}/api/frontend/activities`, { cache: 'no-store' })
+  const activities: {
+    id: number
+    name: string
+    description: string
+    image?: string
+    category?: string
+    features?: string[]
+  }[] = await res.json()
 
-  const categories = ["All", "Adventure", "Photography", "Water Sports", "Cultural", "Nature"]
+  const categories = [
+    'All',
+    ...Array.from(new Set(activities.map(a => a.category).filter(Boolean)))
+  ]
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -124,7 +68,7 @@ export default function ActivitiesPage() {
                   </div>
                   <div className="absolute top-4 right-4">
                     <span className="bg-white/90 text-neutral-900 px-3 py-1 rounded-full text-sm font-semibold">
-                      {activity.difficulty}
+                      {activity.features?.join(', ')}
                     </span>
                   </div>
                 </div>
@@ -136,25 +80,20 @@ export default function ActivitiesPage() {
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center text-neutral-500">
                       <span className="mr-2">⏱️</span>
-                      <span className="text-sm">{activity.duration}</span>
+                      <span className="text-sm">{activity.features?.find(f => f.startsWith('Duration:'))?.split(': ')[1]}</span>
                     </div>
-                    <div className="text-2xl font-bold text-amber-600">{activity.price}</div>
+                    <div className="text-2xl font-bold text-amber-600">{activity.features?.find(f => f.startsWith('Price:'))?.split(': ')[1]}</div>
                   </div>
 
                   <div className="mb-4">
                     <h4 className="font-semibold text-neutral-900 mb-2">Includes:</h4>
                     <ul className="space-y-1">
-                      {activity.includes.slice(0, 2).map((item, index) => (
+                      {activity.features?.filter(f => f.startsWith('Includes:')).map((item, index) => (
                         <li key={index} className="text-sm text-neutral-600 flex items-center">
                           <span className="w-1.5 h-1.5 bg-amber-600 rounded-full mr-2"></span>
-                          {item}
+                          {item.split(': ')[1]}
                         </li>
                       ))}
-                      {activity.includes.length > 2 && (
-                        <li className="text-sm text-amber-600 font-medium">
-                          +{activity.includes.length - 2} more inclusions
-                        </li>
-                      )}
                     </ul>
                   </div>
 

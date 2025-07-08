@@ -1,60 +1,28 @@
 import Image from "next/image"
 import { Clock, MapPin, Phone, Star, Utensils, Wine } from "lucide-react"
+import { headers } from "next/headers"
 
-const restaurants = [
-  {
-    id: 1,
-    name: "Himalayan Heights Restaurant",
-    description:
-      "Our signature rooftop restaurant offering panoramic 360° mountain views with authentic Indian and Chinese cuisine",
-    image: "/images/restaurant.jpg",
-    cuisine: "Indian & Chinese",
-    timing: "7:00 AM - 11:00 PM",
-    location: "Rooftop Level",
-    specialties: [
-      "Traditional Garhwali Cuisine",
-      "Authentic Chinese Dishes",
-      "Fresh Mountain Trout",
-      "Organic Vegetables",
-      "Himalayan Tea Collection",
-      "Local Honey & Dairy",
-    ],
-    features: [
-      "360° Mountain Views",
-      "Open-Air Dining",
-      "Indoor & Outdoor Seating",
-      "Live Cooking Stations",
-      "Private Dining Areas",
-      "Weather Protection",
-    ],
-  },
-  {
-    id: 2,
-    name: "Valley View Café",
-    description:
-      "Casual dining with stunning valley views, perfect for breakfast, light meals, and evening refreshments",
-    image: "/images/spa.jpg",
-    cuisine: "Continental & Snacks",
-    timing: "6:00 AM - 10:00 PM",
-    location: "Ground Floor",
-    specialties: [
-      "Fresh Mountain Coffee",
-      "Continental Breakfast",
-      "Healthy Salads",
-      "Sandwiches & Wraps",
-      "Fresh Fruit Juices",
-      "Homemade Pastries",
-    ],
-    features: [
-      "Valley Views",
-      "Casual Atmosphere",
-      "Quick Service",
-      "Takeaway Available",
-      "Outdoor Terrace",
-      "Free WiFi Zone",
-    ],
-  },
-]
+export interface Restaurant {
+  id: number
+  name: string
+  description: string
+  image?: string
+  cuisine?: string
+  timing?: string
+  location?: string
+  specialties?: string[]
+  features?: string[]
+}
+
+async function getRestaurants(): Promise<Restaurant[]> {
+  const host = headers().get("x-forwarded-host") || headers().get("host")
+  const protocol = host?.includes("localhost") ? "http" : "https"
+  const res = await fetch(`${protocol}://${host}/api/frontend/dining`, {
+    cache: "no-store",
+  })
+  if (!res.ok) return []
+  return res.json()
+}
 
 const menuHighlights = [
   {
@@ -109,7 +77,9 @@ const diningFeatures = [
   },
 ]
 
-export default function DiningPage() {
+export default async function DiningPage() {
+  const restaurants = await getRestaurants()
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-white">
       {/* Hero Section */}
@@ -182,7 +152,7 @@ export default function DiningPage() {
                   <div>
                     <h4 className="font-semibold text-neutral-900 mb-3">Specialties</h4>
                     <div className="grid grid-cols-2 gap-2">
-                      {restaurant.specialties.map((specialty, idx) => (
+                      {restaurant.specialties?.map((specialty, idx) => (
                         <div key={idx} className="flex items-center text-sm text-neutral-600">
                           <div className="w-2 h-2 bg-amber-600 rounded-full mr-3" />
                           {specialty}
@@ -194,7 +164,7 @@ export default function DiningPage() {
                   <div>
                     <h4 className="font-semibold text-neutral-900 mb-3">Features</h4>
                     <div className="grid grid-cols-2 gap-2">
-                      {restaurant.features.map((feature, idx) => (
+                      {restaurant.features?.map((feature, idx) => (
                         <div key={idx} className="flex items-center text-sm text-neutral-600">
                           <div className="w-2 h-2 bg-green-600 rounded-full mr-3" />
                           {feature}

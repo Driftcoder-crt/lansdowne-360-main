@@ -1,60 +1,27 @@
 import Image from "next/image"
 import { Clock, MapPin, Phone, Star, Utensils, Wine } from "lucide-react"
 
-const restaurants = [
-  {
-    id: 1,
-    name: "Himalayan Heights Restaurant",
-    description:
-      "Our signature rooftop restaurant offering panoramic 360° mountain views with authentic Indian and Chinese cuisine",
-    image: "/images/restaurant.jpg",
-    cuisine: "Indian & Chinese",
-    timing: "7:00 AM - 11:00 PM",
-    location: "Rooftop Level",
-    specialties: [
-      "Traditional Garhwali Cuisine",
-      "Authentic Chinese Dishes",
-      "Fresh Mountain Trout",
-      "Organic Vegetables",
-      "Himalayan Tea Collection",
-      "Local Honey & Dairy",
-    ],
-    features: [
-      "360° Mountain Views",
-      "Open-Air Dining",
-      "Indoor & Outdoor Seating",
-      "Live Cooking Stations",
-      "Private Dining Areas",
-      "Weather Protection",
-    ],
-  },
-  {
-    id: 2,
-    name: "Valley View Café",
-    description:
-      "Casual dining with stunning valley views, perfect for breakfast, light meals, and evening refreshments",
-    image: "/images/spa.jpg",
-    cuisine: "Continental & Snacks",
-    timing: "6:00 AM - 10:00 PM",
-    location: "Ground Floor",
-    specialties: [
-      "Fresh Mountain Coffee",
-      "Continental Breakfast",
-      "Healthy Salads",
-      "Sandwiches & Wraps",
-      "Fresh Fruit Juices",
-      "Homemade Pastries",
-    ],
-    features: [
-      "Valley Views",
-      "Casual Atmosphere",
-      "Quick Service",
-      "Takeaway Available",
-      "Outdoor Terrace",
-      "Free WiFi Zone",
-    ],
-  },
-]
+export default function DiningPage() {
+  const [restaurants, setRestaurants] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchDiningVenues = async () => {
+      try {
+        const response = await fetch('/api/dining')
+        if (response.ok) {
+          const data = await response.json()
+          setRestaurants(data)
+        }
+      } catch (error) {
+        console.error('Error fetching dining venues:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDiningVenues()
+  }, [])
 
 const menuHighlights = [
   {
@@ -109,7 +76,16 @@ const diningFeatures = [
   },
 ]
 
-export default function DiningPage() {
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-white">
+        <div className="container mx-auto px-4 py-20">
+          <div className="text-center">Loading dining venues...</div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-white">
       {/* Hero Section */}

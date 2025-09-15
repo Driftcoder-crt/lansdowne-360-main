@@ -37,7 +37,7 @@ export const RoomsSection = () => {
       
       // Transform API data to match Room interface
       const transformedRooms: Room[] = data.map(room => ({
-        id: room.id.toString(),
+        id: room.id?.toString() || Math.random().toString(),
         hotelId: '1', // Default hotel ID
         name: room.name,
         slug: room.name.toLowerCase().replace(/\s+/g, '-'),
@@ -45,26 +45,26 @@ export const RoomsSection = () => {
         category: 'deluxe' as const,
         price: room.price,
         originalPrice: undefined,
-        size: parseInt(room.size?.replace(/[^0-9]/g, '') || '350'),
-        maxGuests: parseInt(room.occupancy?.match(/\d+/)?.[0] || '2'),
+        size: room.size || 350,
+        maxGuests: room.max_guests || 2,
         bedType: 'King Size',
         bathrooms: 1,
         floor: undefined,
         description: room.description,
         shortDescription: room.description.substring(0, 100) + '...',
-        heroImage: room.image || '/images/deluxe-room.jpg',
-        images: [room.image || '/images/deluxe-room.jpg'],
-        amenities: (room.amenities || ['Free WiFi', 'Air Conditioning', 'Room Service']).map(amenity => ({
-          name: amenity,
+        heroImage: room.hero_image || '/images/deluxe-room.jpg',
+        images: room.images ? JSON.parse(room.images) : [room.hero_image || '/images/deluxe-room.jpg'],
+        amenities: (room.amenities ? JSON.parse(room.amenities) : ['Free WiFi', 'Air Conditioning', 'Room Service']).map((amenity: any) => ({
+          name: typeof amenity === 'string' ? amenity : amenity.name || amenity,
           icon: 'check',
           category: 'comfort' as const
         })),
-        features: room.amenities || ['Free WiFi', 'Air Conditioning', 'Room Service'],
+        features: room.features ? JSON.parse(room.features) : ['Free WiFi', 'Air Conditioning', 'Room Service'],
         views: ['Mountain View'],
         status: 'available' as const,
-        popular: false,
-        rating: 4.5,
-        reviewCount: 10
+        popular: room.popular || false,
+        rating: room.rating || 4.5,
+        reviewCount: room.review_count || 10
       }))
       
       setRooms(transformedRooms)

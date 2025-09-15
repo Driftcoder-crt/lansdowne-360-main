@@ -3,5 +3,7 @@
   "/api/frontend/rooms/route": "app/api/frontend/rooms/route.js",
   "/api/frontend/amenities/route": "app/api/frontend/amenities/route.js",
   "/api/frontend/testimonials/route": "app/api/frontend/testimonials/route.js",
-  "/page": "app/page.js"
+  "/api/auth/login/route": "app/api/auth/login/route.js",
+  "/page": "app/page.js",
+  "/admin/login/page": "app/admin/login/page.js"
 }

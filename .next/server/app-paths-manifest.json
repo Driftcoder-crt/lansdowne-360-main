@@ -1,3 +1,7 @@
 {
+  "/api/frontend/hotels/route": "app/api/frontend/hotels/route.js",
+  "/api/frontend/rooms/route": "app/api/frontend/rooms/route.js",
+  "/api/frontend/amenities/route": "app/api/frontend/amenities/route.js",
+  "/api/frontend/testimonials/route": "app/api/frontend/testimonials/route.js",
   "/page": "app/page.js"
 }

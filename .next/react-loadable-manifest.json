@@ -1,1 +1,6 @@
-{}
+{
+  "components/home/hotels-overview.tsx -> @/lib/constants": {
+    "id": "components/home/hotels-overview.tsx -> @/lib/constants",
+    "files": []
+  }
+}

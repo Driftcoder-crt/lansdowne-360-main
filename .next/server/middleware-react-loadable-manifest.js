@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{}"
+self.__REACT_LOADABLE_MANIFEST="{\"components/home/hotels-overview.tsx -> @/lib/constants\":{\"id\":\"components/home/hotels-overview.tsx -> @/lib/constants\",\"files\":[]}}"

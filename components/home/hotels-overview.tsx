@@ -15,8 +15,10 @@ interface Hotel {
   description: string
   status: 'active' | 'coming-soon'
   heroImage: string
-  rooms: number
+  room_count: number
   established: number
+  current_bookings: number
+  monthly_revenue: number
 }
 
 export const HotelsOverview = () => {
@@ -26,20 +28,30 @@ export const HotelsOverview = () => {
   useEffect(() => {
     const fetchHotels = async () => {
       try {
-        const response = await fetch('/api/hotels')
+        const response = await fetch('/api/frontend/hotels')
         if (response.ok) {
           const data = await response.json()
           setHotels(data)
         } else {
           // Fallback to constants if API fails
           const { HOTELS } = await import('@/lib/constants')
-          setHotels(HOTELS)
+          setHotels(HOTELS.map(h => ({
+            ...h,
+            room_count: h.rooms,
+            current_bookings: 0,
+            monthly_revenue: 0
+          })))
         }
       } catch (error) {
         console.error('Error fetching hotels:', error)
         // Fallback to constants if API fails
         const { HOTELS } = await import('@/lib/constants')
-        setHotels(HOTELS)
+        setHotels(HOTELS.map(h => ({
+          ...h,
+          room_count: h.rooms,
+          current_bookings: 0,
+          monthly_revenue: 0
+        })))
       } finally {
         setLoading(false)
       }
